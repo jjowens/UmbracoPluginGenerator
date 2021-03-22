@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 
 var myNamespace = function UmbracoPluginGenerator() {
     
@@ -6,15 +7,12 @@ var myNamespace = function UmbracoPluginGenerator() {
     let currentPluginConfig = {};
     let pluginFolderPath = "";
     let pluginRelativeFolderPath = "";
+    let dashboardFiles = [];
+    let controllerFiles = [];
+    let cssFiles = [];
 
     function GeneratePlugin(pluginConfig) {
         currentPluginConfig = pluginConfig;
-
-        let fileName = "/data.test.json";
-        let filePath = pluginConfig.projectpath + fileName; 
-        let jsonStr = JSON.stringify(currentPluginConfig);
-
-        writeToFile(filePath, jsonStr);
 
         let pluginName =  pluginConfig.pluginname;
 
@@ -26,11 +24,36 @@ var myNamespace = function UmbracoPluginGenerator() {
         let pluginManifest = createPackageManifest();
         let pluginManifestFilePath = pluginFolderPath + "/package.manifest";
 
+        // CREATE MANIFEST FILE
         jsonStr = JSON.stringify(pluginManifest, null, 2);
         writeToFile(pluginManifestFilePath, jsonStr);
+
+        // CREATE FILES BASED ON MANIFEST
+        if (dashboardFiles !== undefined) {
+            dashboardFiles.forEach(element => {
+                writeToFile(element, "");
+            });
+        }
+
+        if (controllerFiles !== undefined) {
+            controllerFiles.forEach(element => {
+                writeToFile(element, "");
+            });
+        }
+
+        if (cssFiles !== undefined) {
+            cssFiles.forEach(element => {
+                writeToFile(element, "");
+            });
+        }
+        
     }
 
     function writeToFile(filePath, data) {
+        var folderPath = path.dirname(filePath);
+
+        createFolder(folderPath);
+
         fs.writeFile(filePath, data, function (err) {
             if (err) return console.log(err);
         });
@@ -38,7 +61,6 @@ var myNamespace = function UmbracoPluginGenerator() {
 
     function createFolder(folderPath) {
         try {
-            // first check if directory already exists
             if (!fs.existsSync(folderPath)) {
                 fs.mkdirSync(folderPath);
             }
@@ -52,20 +74,69 @@ var myNamespace = function UmbracoPluginGenerator() {
 
         manifest.dashboards = [];
 
-        let dashboard = {
-            alias: currentPluginConfig.pluginname,
-            view: pluginRelativeFolderPath + "/" + "Dashboard.html",
-            sections: [ currentPluginConfig.pluginname.toLowerCase() ],
-            weight: 0,
-            access: [
-                {"grant": "admin"}
-            ]
+        let dashboard = { };
+        let dashboardFilename = "Dashboard.html";
+        let viewFilePath = pluginFolderPath + "/" + dashboardFilename;
+
+        if (currentPluginConfig.dashboards === undefined) {
+
+            dashboard = {
+                alias: currentPluginConfig.pluginname,
+                view: pluginRelativeFolderPath + "/" + dashboardFilename,
+                sections: [ currentPluginConfig.pluginname.toLowerCase() ],
+                weight: 0,
+                access: [
+                    {"grant": "admin"}
+                ]
+            }
+
+            manifest.dashboards.push(dashboard);
+            dashboardFiles.push(viewFilePath);
+        } else {
+            currentPluginConfig.dashboards.forEach(item => {
+                dashboardFilename = item.view;
+                viewFilePath = pluginFolderPath + "/" + dashboardFilename;
+
+                dashboard = {
+                    alias: currentPluginConfig.pluginname,
+                    view: pluginRelativeFolderPath + "/" + dashboardFilename,
+                    sections: [ currentPluginConfig.pluginname.toLowerCase() ],
+                    weight: item.weight,
+                    access: [
+                        {"grant": "admin"}
+                    ]
+                }
+                manifest.dashboards.push(viewFilePath);
+                dashboardFiles.push(viewFilePath);
+            });
+
         }
 
-        manifest.dashboards.push(dashboard);
+        if (currentPluginConfig.controllers !== undefined) {
+            manifest.javascript = [];
 
-        manifest.javascript = [];
-        manifest.css = [];
+            currentPluginConfig.controllers.forEach(item => {
+                let relativePath = pluginFolderPath + "/" + item;
+                let controllerPath = "~" + pluginRelativeFolderPath + "/" + item;
+
+                manifest.javascript.push(controllerPath);
+                controllerFiles.push(relativePath);
+            });
+
+        }
+
+        if (currentPluginConfig.css !== undefined) {
+            manifest.css = [];
+
+            currentPluginConfig.css.forEach(item => {
+                let relativePath = pluginFolderPath + "/" + item;
+                let cssPath = "~" + pluginRelativeFolderPath + "/" + item;
+
+                manifest.css.push(cssPath);
+                cssFiles.push(relativePath);
+            });
+
+        }
 
         return manifest;
     }
