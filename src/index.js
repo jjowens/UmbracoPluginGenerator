@@ -10,14 +10,18 @@ var myNamespace = function UmbracoPluginGenerator() {
     let dashboardFiles = [];
     let controllerFiles = [];
     let cssFiles = [];
+    let templateFolderPath = "";
 
     function GeneratePlugin(pluginConfig) {
         currentPluginConfig = pluginConfig;
+        templateFolderPath = __dirname + "\\template";
+        
+        if (currentPluginConfig.alias === undefined) {
+            currentPluginConfig.alias = currentPluginConfig.pluginname.toLowerCase().trim();
+        }
 
-        let pluginName =  pluginConfig.pluginname;
-
-        pluginFolderPath = pluginConfig.projectpath + "/App_Plugins/" + pluginName;
-        pluginRelativeFolderPath = "/App_Plugins/" + pluginName;
+        pluginFolderPath = currentPluginConfig.projectpath + "/App_Plugins/" + currentPluginConfig.pluginname;
+        pluginRelativeFolderPath = "/App_Plugins/" + currentPluginConfig.pluginname;
         createFolder(pluginFolderPath);
 
         // CREATE PACKAGE MAINFEST
@@ -28,25 +32,57 @@ var myNamespace = function UmbracoPluginGenerator() {
         jsonStr = JSON.stringify(pluginManifest, null, 2);
         writeToFile(pluginManifestFilePath, jsonStr);
 
+        let fields = [];
+        let tempFileContents = "";
+        let tempFilePath = "";
+
         // CREATE FILES BASED ON MANIFEST
         if (dashboardFiles !== undefined) {
-            dashboardFiles.forEach(element => {
-                writeToFile(element, "");
+            dashboardFiles.forEach(fileObj => {
+                writeToFile(fileObj, "");
             });
         }
 
         if (controllerFiles !== undefined) {
-            controllerFiles.forEach(element => {
-                writeToFile(element, "");
+            tempFilePath = templateFolderPath + "\\7\\controller-default.js";
+            tempFileContents = fs.readFileSync(tempFilePath, "utf-8");
+
+            controllerFiles.forEach(fileObj => {
+                writeToFile(fileObj, tempFileContents);
             });
         }
 
         if (cssFiles !== undefined) {
-            cssFiles.forEach(element => {
-                writeToFile(element, "");
+            cssFiles.forEach(fileObj => {
+                writeToFile(fileObj, "");
             });
         }
-        
+
+        // CREATE LANGUAGE FILE
+        let langObj = {
+            alias: "en",
+            name: "English (US)",
+            localname: "English (US)",
+            culture: "en-us"
+        }
+
+        let langContents = fs.readFileSync(templateFolderPath + "\\7\\lang-file.xml", "utf-8");
+
+        fields = [
+            { name: "##ALIAS##", value: langObj.alias},
+            { name: "##NAME##", value: langObj.name},
+            { name: "##LOCALNAME##", value: langObj.localname},
+            { name: "##CULTURE##", value: langObj.culture},
+            { name: "##PLUGINALIAS##", value: currentPluginConfig.alias},
+            { name: "##PLUGINNAME##", value: currentPluginConfig.pluginname}
+        ]
+
+        langContents = replaceContent(fields, langContents);
+
+        let langFilePath = pluginFolderPath + "/lang/" + langObj.culture + ".xml";
+
+        writeToFile(langFilePath, langContents);
+
     }
 
     function writeToFile(filePath, data) {
@@ -67,6 +103,15 @@ var myNamespace = function UmbracoPluginGenerator() {
         } catch (err) {
             console.log(err);
         }
+    }
+
+    function replaceContent(fields, data) {
+
+        fields.forEach(field => {
+            data = data.replace(field.name, field.value);
+        });
+
+        return data;
     }
 
     function createPackageManifest() {
