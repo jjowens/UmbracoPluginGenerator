@@ -39,13 +39,24 @@ var myNamespace = function UmbracoPluginGenerator() {
         // CREATE FILES BASED ON MANIFEST
         if (dashboardFiles !== undefined) {
             dashboardFiles.forEach(fileObj => {
-                writeToFile(fileObj, "");
+                tempFilePath = templateFolderPath + "\\" + pluginUmbracoVersion + "\\dashboard-default.html";
+                tempFileContents = fs.readFileSync(tempFilePath, "utf-8");
+                fields = [];
+                fields.push({name: "##CONTROLLERNAME##", value: "My." + currentPluginConfig.pluginname + "Controller"});
+    
+                tempFileContents = replaceContent(fields, tempFileContents);
+
+                writeToFile(fileObj, tempFileContents);
             });
         }
 
         if (controllerFiles !== undefined) {
             tempFilePath = templateFolderPath + "\\" + pluginUmbracoVersion + "\\controller-default.js";
             tempFileContents = fs.readFileSync(tempFilePath, "utf-8");
+            fields = [];
+            fields.push({name: "##CONTROLLERNAME##", value: "My." + currentPluginConfig.pluginname + "Controller"});
+
+            tempFileContents = replaceContent(fields, tempFileContents);
 
             controllerFiles.forEach(fileObj => {
                 writeToFile(fileObj, tempFileContents);
@@ -120,7 +131,7 @@ var myNamespace = function UmbracoPluginGenerator() {
         manifest.dashboards = [];
 
         let dashboard = { };
-        let dashboardFilename = "Dashboard.html";
+        let dashboardFilename = "dashboard.html";
         let viewFilePath = pluginFolderPath + "/" + dashboardFilename;
 
         if (currentPluginConfig.dashboards === undefined) {
