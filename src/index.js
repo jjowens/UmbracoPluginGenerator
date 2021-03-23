@@ -44,7 +44,7 @@ var myNamespace = function UmbracoPluginGenerator() {
         }
 
         if (controllerFiles !== undefined) {
-            tempFilePath = templateFolderPath + "\\7\\controller-default.js";
+            tempFilePath = templateFolderPath + "\\" + pluginUmbracoVersion + "\\controller-default.js";
             tempFileContents = fs.readFileSync(tempFilePath, "utf-8");
 
             controllerFiles.forEach(fileObj => {
@@ -66,7 +66,7 @@ var myNamespace = function UmbracoPluginGenerator() {
             culture: "en-us"
         }
 
-        let langContents = fs.readFileSync(templateFolderPath + "\\7\\lang-file.xml", "utf-8");
+        let langContents = fs.readFileSync(templateFolderPath + "\\" + pluginUmbracoVersion +  "\\lang-file.xml", "utf-8");
 
         fields = [
             { name: "##ALIAS##", value: langObj.alias},
