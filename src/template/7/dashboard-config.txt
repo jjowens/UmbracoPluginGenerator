@@ -1,0 +1,6 @@
+<section alias="##PLUGINNAME##">
+    <areas>
+      <area>##AREAS##</area>
+    </areas>
+    ##TABS##
+</section>

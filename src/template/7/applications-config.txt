@@ -1,0 +1,1 @@
+  <add alias="##ALIAS##" name="##NAME##" icon="##ICON##" sortOrder="##SORTORDER##" />

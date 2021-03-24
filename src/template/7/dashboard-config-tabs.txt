@@ -1,0 +1,5 @@
+<tab caption="##CAPTION##">
+    <control>
+    ##DASHBOARDFILEPATH##
+    </control>
+</tab>

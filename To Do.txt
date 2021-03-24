@@ -1,0 +1,2 @@
+- Update Applications.config (Version 7)
+- Update Dashboard.config (Version 7)
